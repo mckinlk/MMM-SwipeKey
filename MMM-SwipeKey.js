@@ -1,4 +1,4 @@
-Module.register("MMM-KeyPress", {
+Module.register("MMM-SwipeKey", {
     start: function () {
         Log.log("Starting module: " + this.name);
     },
@@ -35,10 +35,17 @@ Module.register("MMM-KeyPress", {
     },
 
     sendSwipeNotification: function(direction) {
-        var payload = {
-            step: (direction === "ArrowRight" ? 1 : -1)  // 1 to move forward, -1 to move backward
-        };
-        this.sendNotification('CX3_GLANCE_CALENDAR', payload);
+        var whichway = (direction === "ArrowRight" ? 1 : -1)
+        this.sendNotification('CX3_GET_CONFIG', {
+            callback: (before) => {
+              this.sendNotification('CX3_SET_CONFIG', {
+                monthIndex: before.monthIndex + whichway,
+                callback: (after) => {
+                  setTimeout(() => { this.sendNotification('CX3_RESET') }, 60*1000) //reset after 60 sec, async
+                }
+              })
+            }
+          })        
     },
 
     keypressHandler: function(event) {

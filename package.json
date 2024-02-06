@@ -1,0 +1,26 @@
+{
+  "name": "mmm-swipekey",
+  "version": "1.0.0",
+  "description": "MagicMirror module for key swiping MMM-CalendarExt3",
+  "main": "MMM-SwipeKey.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mckinlk/MMM-SwipeKey.git"
+  },
+  "keywords": [
+    "MM",
+    "MagicMirror",
+    "calendar",
+    "swipe",
+    "key"
+  ],
+  "author": "xxx@gmail.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mckinlk/MMM-SwipeKey/issues"
+  },
+  "homepage": "https://github.com/mckinlk/MMM-SwipeKey#readme"
+}
