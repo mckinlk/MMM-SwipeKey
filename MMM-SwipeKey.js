@@ -2,8 +2,9 @@ Module.register("MMM-SwipeKey", {
     // Default module configuration
     defaults: {
         mode: "week",
-        swipe: "y",
+        swipe: "y", //y: up/down x: left/right
         threshold: 200,
+        refreshInterval: 60*1000, //1 minute
     },
     start: function () {
         Log.log("Starting module: " + this.name);
@@ -16,7 +17,7 @@ Module.register("MMM-SwipeKey", {
             window.addEventListener("touchend", this.touchEndHandler.bind(this));
         }
     },
-
+    refreshTimer: null,
     touchStart: 0,
     touchEnd: 0,
 
@@ -25,6 +26,7 @@ Module.register("MMM-SwipeKey", {
     },
 
     touchEndHandler: function(event) {
+        //handle multitouch, multitouches increases change distance
         var count = event.touches.length;
         this.touchEnd = (this.config.swipe == "x" ? event.changedTouches[0].screenX : event.changedTouches[0].screenY);
         this.handleSwipe(count);
@@ -42,19 +44,27 @@ Module.register("MMM-SwipeKey", {
 
     sendSwipeNotification: function(direction, count) {
         var whichway = (direction === "Forward" ? count : -1 * count) 
+        //reset the timer on new swipe so timers dont stack up
+        if (this.refreshTimer) {
+            clearTimeout(this.refreshTimer)
+            this.refreshTimer = null
+        }
+        
+        //get current CX3 config, change display index, set the new CX3 config
         this.sendNotification('CX3_GET_CONFIG', {
             callback: (before) => {
-              this.sendNotification('CX3_SET_CONFIG', {
-                monthIndex: (this.config.mode === "month" ? before.monthIndex  + whichway: before.monthIndex),
-                weekIndex:  (this.config.mode === "week" ? before.weekIndex  + whichway: before.weekIndex),
-                callback: (after) => {
-                  setTimeout(() => { this.sendNotification('CX3_RESET') }, 60*1000) //reset after 60 sec, async
-                }
-              })
+                this.sendNotification('CX3_SET_CONFIG', {
+                    monthIndex: (this.config.mode === "month" ? before.monthIndex  + whichway: before.monthIndex),
+                    weekIndex:  (this.config.mode === "week" ? before.weekIndex  + whichway: before.weekIndex),
+                    callback: (after) => {
+                        this.refreshTimer = setTimeout(() => { this.sendNotification('CX3_RESET') }, this.config.refreshInterval)
+                    }
+                })
             }
           })        
     },
 
+    //also configure keystroke detection for swiping
     keypressHandler: function(event) {
         if (this.config.swipe === "x"){
             if (event.key === "ArrowRight") {
