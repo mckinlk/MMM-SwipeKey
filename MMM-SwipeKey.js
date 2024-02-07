@@ -25,22 +25,23 @@ Module.register("MMM-SwipeKey", {
     },
 
     touchEndHandler: function(event) {
+        var count = event.touches.length;
         this.touchEnd = (this.config.swipe == "x" ? event.changedTouches[0].screenX : event.changedTouches[0].screenY);
-        this.handleSwipe();
+        this.handleSwipe(count);
     },
 
-    handleSwipe: function() {
+    handleSwipe: function(count) {
         var difference = this.touchEnd - this.touchStart;
         var threshold = this.config.threshold;  // You can adjust the threshold as required
         if (difference > threshold) {
-            this.sendSwipeNotification("Back");
+            this.sendSwipeNotification("Back", count);
         } else if (difference < -threshold) {
-            this.sendSwipeNotification("Forward");
+            this.sendSwipeNotification("Forward", count);
         }
     },
 
-    sendSwipeNotification: function(direction) {
-        var whichway = (direction === "Forward" ? 1 : -1) 
+    sendSwipeNotification: function(direction, count) {
+        var whichway = (direction === "Forward" ? count : -1 * count) 
         this.sendNotification('CX3_GET_CONFIG', {
             callback: (before) => {
               this.sendNotification('CX3_SET_CONFIG', {
@@ -57,17 +58,17 @@ Module.register("MMM-SwipeKey", {
     keypressHandler: function(event) {
         if (this.config.swipe === "x"){
             if (event.key === "ArrowRight") {
-                this.sendSwipeNotification("Forward");
+                this.sendSwipeNotification("Forward", 1);
             }
             if (event.key === "ArrowLeft") {
-                this.sendSwipeNotification("Back");
+                this.sendSwipeNotification("Back", 1);
             }
         } else {
             if (event.key === "ArrowDown") {
-                this.sendSwipeNotification("Back");
+                this.sendSwipeNotification("Back", 1);
             }
             if (event.key === "ArrowUp") {
-                this.sendSwipeNotification("Forward");
+                this.sendSwipeNotification("Forward", 1);
             }
         }
     }
