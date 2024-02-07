@@ -1,4 +1,10 @@
 Module.register("MMM-SwipeKey", {
+    // Default module configuration
+    defaults: {
+        mode: "week",
+        swipe: "y",
+        threshold: 200,
+    },
     start: function () {
         Log.log("Starting module: " + this.name);
     },
@@ -11,35 +17,42 @@ Module.register("MMM-SwipeKey", {
         }
     },
 
-    touchStartX: 0,
-    touchEndX: 0,
+    touchStart: 0,
+    touchEnd: 0,
 
     touchStartHandler: function(event) {
-        this.touchStartX = event.changedTouches[0].screenX;
+        this.touchStart = (this.config.swipe == "x" ? event.changedTouches[0].screenX : event.changedTouches[0].screenY);
     },
 
     touchEndHandler: function(event) {
-        this.touchEndX = event.changedTouches[0].screenX;
+        this.touchEnd = (this.config.swipe == "x" ? event.changedTouches[0].screenX : event.changedTouches[0].screenY);
         this.handleSwipe();
     },
 
     handleSwipe: function() {
-        var difference = this.touchEndX - this.touchStartX;
-        var threshold = 50;  // You can adjust the threshold as required
-
-        if (difference > threshold) {
-            this.sendSwipeNotification("ArrowLeft");
-        } else if (difference < -threshold) {
-            this.sendSwipeNotification("ArrowRight");
+        var difference = this.touchEnd - this.touchStart;
+        var threshold = this.config.threshold;  // You can adjust the threshold as required
+        if (this.config.swipe === "x"){
+            if (difference > threshold) {
+                this.sendSwipeNotification("Back");
+            } else if (difference < -threshold) {
+                this.sendSwipeNotification("Forward");
+            }
+        } else {
+            if (difference > threshold) {
+                this.sendSwipeNotification("Forward");
+            } else if (difference < -threshold) {
+                this.sendSwipeNotification("Back");
+            }            
         }
     },
 
     sendSwipeNotification: function(direction) {
-        var whichway = (direction === "ArrowRight" ? 1 : -1)
+        var whichway = (direction === "Forward" ? 1 : -1) 
         this.sendNotification('CX3_GET_CONFIG', {
             callback: (before) => {
               this.sendNotification('CX3_SET_CONFIG', {
-                monthIndex: before.monthIndex + whichway,
+                monthIndex: (this.config.mode === "month" ? before.monthIndex : before.weekIndex) + whichway,
                 callback: (after) => {
                   setTimeout(() => { this.sendNotification('CX3_RESET') }, 60*1000) //reset after 60 sec, async
                 }
@@ -49,8 +62,20 @@ Module.register("MMM-SwipeKey", {
     },
 
     keypressHandler: function(event) {
-        if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
-            this.sendSwipeNotification(event.key);
+        if (this.config.swipe === "x"){
+            if (event.key === "ArrowRight") {
+                this.sendSwipeNotification("Forward");
+            }
+            if (event.key === "ArrowLeft") {
+                this.sendSwipeNotification("Back");
+            }
+        } else {
+            if (event.key === "ArrowDown") {
+                this.sendSwipeNotification("Forward");
+            }
+            if (event.key === "ArrowUp") {
+                this.sendSwipeNotification("Back");
+            }
         }
     }
 });
