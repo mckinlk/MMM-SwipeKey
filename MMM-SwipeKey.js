@@ -32,18 +32,10 @@ Module.register("MMM-SwipeKey", {
     handleSwipe: function() {
         var difference = this.touchEnd - this.touchStart;
         var threshold = this.config.threshold;  // You can adjust the threshold as required
-        if (this.config.swipe === "x"){
-            if (difference > threshold) {
-                this.sendSwipeNotification("Back");
-            } else if (difference < -threshold) {
-                this.sendSwipeNotification("Forward");
-            }
-        } else {
-            if (difference > threshold) {
-                this.sendSwipeNotification("Forward");
-            } else if (difference < -threshold) {
-                this.sendSwipeNotification("Back");
-            }            
+        if (difference > threshold) {
+            this.sendSwipeNotification("Back");
+        } else if (difference < -threshold) {
+            this.sendSwipeNotification("Forward");
         }
     },
 
@@ -52,7 +44,8 @@ Module.register("MMM-SwipeKey", {
         this.sendNotification('CX3_GET_CONFIG', {
             callback: (before) => {
               this.sendNotification('CX3_SET_CONFIG', {
-                monthIndex: (this.config.mode === "month" ? before.monthIndex : before.weekIndex) + whichway,
+                monthIndex: (this.config.mode === "month" ? before.monthIndex  + whichway: before.monthIndex),
+                weekIndex:  (this.config.mode === "week" ? before.weekIndex  + whichway: before.weekIndex),
                 callback: (after) => {
                   setTimeout(() => { this.sendNotification('CX3_RESET') }, 60*1000) //reset after 60 sec, async
                 }
@@ -71,10 +64,10 @@ Module.register("MMM-SwipeKey", {
             }
         } else {
             if (event.key === "ArrowDown") {
-                this.sendSwipeNotification("Forward");
+                this.sendSwipeNotification("Back");
             }
             if (event.key === "ArrowUp") {
-                this.sendSwipeNotification("Back");
+                this.sendSwipeNotification("Forward");
             }
         }
     }
